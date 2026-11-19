@@ -1,0 +1,203 @@
+{
+  "$comment": "ONE entry per project. Order = display order. See README → 'Add a new video'. Fields: slug (url + media folder), title, client, category (long-form | talking-head | podcast | motion | short-form), aspect (16:9 | 9:16), source (filename in raw-videos/, used by `npm run media`), driveId (reference only), video ({ type: 'youtube', id, owner: 'client' | 'own' } OR { type: 'url', src }), views (optional, e.g. '1.2M views'), featured (show on home page), year, caseStudy { goal, did[], results[] } (all optional).",
+  "works": [
+    {
+      "slug": "ad-01-final",
+      "title": "Ad 01 — Final Cut",
+      "client": "",
+      "category": "short-form",
+      "aspect": "16:9",
+      "source": "AD 01 final REVISED.mp4",
+      "driveId": "",
+      "previewStart": 32,
+      "reelMoments": [
+        {
+          "at": 12.3,
+          "focusY": 0.5
+        },
+        {
+          "at": 36.2,
+          "focusY": 0.5
+        }
+      ],
+      "video": {
+        "type": "youtube",
+        "id": "",
+        "owner": "client"
+      },
+      "views": "",
+      "featured": true,
+      "year": "",
+      "caseStudy": {
+        "goal": "",
+        "did": [],
+        "results": []
+      }
+    },
+    {
+      "slug": "ad-001",
+      "title": "Ad 001",
+      "client": "",
+      "category": "short-form",
+      "aspect": "9:16",
+      "source": "Ad 001 Revised.mp4",
+      "driveId": "",
+      "previewStart": 15,
+      "reelMoments": [
+        {
+          "at": 4.5,
+          "focusY": 0.45
+        },
+        {
+          "at": 22,
+          "focusY": 0.2
+        }
+      ],
+      "video": {
+        "type": "youtube",
+        "id": "",
+        "owner": "client"
+      },
+      "views": "",
+      "featured": true,
+      "year": "",
+      "caseStudy": {
+        "goal": "",
+        "did": [],
+        "results": []
+      }
+    },
+    {
+      "slug": "ad-01",
+      "title": "Ad 01",
+      "client": "",
+      "category": "short-form",
+      "aspect": "9:16",
+      "source": "Ad 01.mp4",
+      "driveId": "",
+      "previewStart": 28,
+      "reelMoments": [
+        {
+          "at": 2,
+          "focusY": 0.1
+        },
+        {
+          "at": 32.5,
+          "focusY": 0.3
+        }
+      ],
+      "video": {
+        "type": "youtube",
+        "id": "",
+        "owner": "client"
+      },
+      "views": "",
+      "featured": true,
+      "year": "",
+      "caseStudy": {
+        "goal": "",
+        "did": [],
+        "results": []
+      }
+    },
+    {
+      "slug": "ad-03",
+      "title": "Ad 03",
+      "client": "",
+      "category": "short-form",
+      "aspect": "9:16",
+      "source": "Ad 03.mp4",
+      "driveId": "",
+      "previewStart": 4,
+      "reelMoments": [
+        {
+          "at": 4.6,
+          "focusY": 0.1
+        },
+        {
+          "at": 8.5,
+          "focusY": 0.08
+        }
+      ],
+      "video": {
+        "type": "youtube",
+        "id": "",
+        "owner": "client"
+      },
+      "views": "",
+      "featured": true,
+      "year": "",
+      "caseStudy": {
+        "goal": "",
+        "did": [],
+        "results": []
+      }
+    },
+    {
+      "slug": "ad-40",
+      "title": "Ad 40",
+      "client": "",
+      "category": "short-form",
+      "aspect": "9:16",
+      "source": "Ad 40 Revised 2.mp4",
+      "driveId": "",
+      "previewStart": 31,
+      "reelMoments": [
+        {
+          "at": 5,
+          "focusY": 0.1
+        },
+        {
+          "at": 9,
+          "focusY": 0.1
+        }
+      ],
+      "video": {
+        "type": "youtube",
+        "id": "",
+        "owner": "client"
+      },
+      "views": "",
+      "featured": true,
+      "year": "",
+      "caseStudy": {
+        "goal": "",
+        "did": [],
+        "results": []
+      }
+    },
+    {
+      "slug": "tiktok-02",
+      "title": "TikTok 02",
+      "client": "",
+      "category": "short-form",
+      "aspect": "9:16",
+      "source": "Tiktok 02.mp4",
+      "driveId": "",
+      "previewStart": 2,
+      "reelMoments": [
+        {
+          "at": 4.5,
+          "focusY": 0.03
+        },
+        {
+          "at": 12.5,
+          "focusY": 0.4
+        }
+      ],
+      "video": {
+        "type": "youtube",
+        "id": "",
+        "owner": "client"
+      },
+      "views": "",
+      "featured": true,
+      "year": "",
+      "caseStudy": {
+        "goal": "",
+        "did": [],
+        "results": []
+      }
+    }
+  ]
+}

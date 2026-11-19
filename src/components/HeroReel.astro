@@ -1,0 +1,62 @@
+---
+/**
+ * Hero showreel background.
+ * - <picture> poster is the LCP element (preloaded in <head> via `heroPreload`).
+ * - <video> has no `autoplay` attribute: a tiny script starts it unless the
+ *   viewer prefers reduced motion or has Save-Data on. No JS → poster only.
+ * - Mobile (<768px) gets the 9:16 center-crop reel, desktop the 16:9 montage.
+ */
+import media from '../data/media.json';
+
+const reel = media.reel;
+const d = reel['16x9'];
+const m = reel['9x16'];
+---
+
+<div class="hero-reel absolute inset-0 -z-20 overflow-hidden bg-surface" aria-hidden="true">
+  <picture>
+    <source media="(max-width: 767px)" type="image/avif" srcset={m.poster.avif} width={m.width} height={m.height} />
+    <source media="(max-width: 767px)" type="image/webp" srcset={m.poster.webp} width={m.width} height={m.height} />
+    <source type="image/avif" srcset={d.poster.avif} width={d.width} height={d.height} />
+    <img
+      src={d.poster.webp}
+      width={d.width}
+      height={d.height}
+      alt=""
+      fetchpriority="high"
+      decoding="async"
+      class="absolute inset-0 size-full object-cover"
+    />
+  </picture>
+  <video
+    class="absolute inset-0 size-full object-cover opacity-0 transition-opacity duration-700"
+    muted
+    loop
+    playsinline
+    preload="none"
+    disablepictureinpicture
+    disableremoteplayback
+    data-hero-video
+  >
+    <source media="(max-width: 767px)" src={m.webm} type="video/webm" />
+    <source media="(max-width: 767px)" src={m.mp4} type="video/mp4" />
+    <source src={d.webm} type="video/webm" />
+    <source src={d.mp4} type="video/mp4" />
+  </video>
+</div>
+
+<script>
+  const v = document.querySelector<HTMLVideoElement>('[data-hero-video]');
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const saveData = (navigator as any).connection?.saveData === true;
+  if (v && !reduce && !saveData) {
+    v.preload = 'auto';
+    v.addEventListener('playing', () => v.classList.replace('opacity-0', 'opacity-100'), { once: true });
+    const start = () => v.play().catch(() => {});
+    // Let the poster paint first (LCP), then start the reel.
+    if (document.readyState === 'complete') start();
+    else addEventListener('load', start, { once: true });
+    // Pause when the hero is off-screen to save CPU/battery.
+    new IntersectionObserver(([e]) => (e.isIntersecting ? start() : v.pause())).observe(v);
+  }
+</script>

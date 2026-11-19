@@ -1,0 +1,20 @@
+<script>
+  // Lightweight reveal: adds .is-in when [data-reveal] enters the viewport.
+  // Runs only when <html> has .motion (i.e. reduced motion is off).
+  const root = document.documentElement;
+  if (root.classList.contains('motion')) {
+    (window as any).__motionReady = true;
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          if (e.isIntersecting) {
+            e.target.classList.add('is-in');
+            io.unobserve(e.target);
+          }
+        }
+      },
+      { rootMargin: '0px 0px -8% 0px' },
+    );
+    document.querySelectorAll('[data-reveal]').forEach((el) => io.observe(el));
+  }
+</script>

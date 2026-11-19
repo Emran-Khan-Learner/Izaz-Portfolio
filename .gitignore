@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.astro/
+.vercel/
+.env
+.env.*
+# Source footage: large, never committed. Only generated previews in public/media are.
+raw-videos/
+*.log

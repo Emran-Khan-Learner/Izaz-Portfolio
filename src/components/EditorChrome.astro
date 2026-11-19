@@ -1,0 +1,87 @@
+---
+/**
+ * Editor-suite chrome:
+ *  - playhead scroll-progress bar across the top
+ *  - running SMPTE timecode (HH:MM:SS:FF @ 24fps) that tracks scroll
+ * Pure CSS + ~0.5KB vanilla JS. Without JS they simply sit at 0.
+ */
+---
+
+<div class="playhead" aria-hidden="true">
+  <div class="playhead-track"></div>
+  <div class="playhead-fill" data-playhead></div>
+  <div class="playhead-head" data-playhead-head></div>
+</div>
+
+<div
+  class="timecode pointer-events-none fixed bottom-4 left-4 z-40 hidden font-mono text-[11px] tracking-[0.08em] text-muted tabular-nums md:block"
+  aria-hidden="true"
+>
+  <span class="mr-2 inline-block size-1.5 translate-y-[-1px] rounded-full bg-ember align-middle"></span>
+  <span data-timecode>00:00:00:00</span>
+</div>
+
+<style>
+  .playhead {
+    position: fixed;
+    inset: 0 0 auto 0;
+    height: 2px;
+    z-index: 70;
+    pointer-events: none;
+  }
+  .playhead-track {
+    position: absolute;
+    inset: 0;
+    background: var(--color-line);
+  }
+  .playhead-fill {
+    position: absolute;
+    inset: 0;
+    background: var(--color-ember);
+    transform-origin: 0 50%;
+    transform: scaleX(0);
+  }
+  .playhead-head {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 1px;
+    height: 10px;
+    background: var(--color-ember);
+    box-shadow: 0 0 8px var(--color-ember);
+    transform: translateX(0);
+  }
+</style>
+
+<script>
+  const fill = document.querySelector<HTMLElement>('[data-playhead]');
+  const head = document.querySelector<HTMLElement>('[data-playhead-head]');
+  const tc = document.querySelector<HTMLElement>('[data-timecode]');
+  const FPS = 24;
+  const RUNTIME_S = 150; // whole page = a 2:30 "sequence"
+  const pad = (n: number) => String(n).padStart(2, '0');
+  let ticking = false;
+
+  function update() {
+    ticking = false;
+    const max = document.documentElement.scrollHeight - innerHeight;
+    const p = max > 0 ? Math.min(1, Math.max(0, scrollY / max)) : 0;
+    if (fill) fill.style.transform = `scaleX(${p})`;
+    if (head) head.style.transform = `translateX(${p * (innerWidth - 1)}px)`;
+    if (tc) {
+      const total = Math.round(p * RUNTIME_S * FPS);
+      const f = total % FPS;
+      const s = Math.floor(total / FPS);
+      tc.textContent = `${pad(Math.floor(s / 3600))}:${pad(Math.floor(s / 60) % 60)}:${pad(s % 60)}:${pad(f)}`;
+    }
+  }
+  const onScroll = () => {
+    if (!ticking) {
+      ticking = true;
+      requestAnimationFrame(update);
+    }
+  };
+  addEventListener('scroll', onScroll, { passive: true });
+  addEventListener('resize', onScroll, { passive: true });
+  update();
+</script>

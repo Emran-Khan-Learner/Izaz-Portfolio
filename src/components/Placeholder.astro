@@ -1,0 +1,26 @@
+---
+/**
+ * Wrap any not-yet-real content in this.
+ * Dev: renders children inside a dashed outline with a PLACEHOLDER tag.
+ * Production: renders nothing at all.
+ */
+import { SHOW_PLACEHOLDERS } from '../lib/placeholder';
+
+interface Props {
+  note?: string;
+  as?: 'div' | 'span' | 'li';
+  class?: string;
+}
+const { note = 'Placeholder', as: Tag = 'div', class: cls = '' } = Astro.props;
+---
+
+{
+  SHOW_PLACEHOLDERS && (
+    <Tag class:list={['ph', cls]} data-placeholder>
+      <span class="ph-tag" aria-hidden="true">
+        PLACEHOLDER · {note} · hidden in production
+      </span>
+      <slot />
+    </Tag>
+  )
+}
