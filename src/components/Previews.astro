@@ -1,0 +1,68 @@
+<script>
+  /**
+   * Preview loop controller for every [data-preview] video on the page.
+   * - Desktop (hover + fine pointer): plays on hover/focus of its card.
+   * - Touch: plays the most visible card (≥60% in view).
+   * - Only one preview plays at a time.
+   * - Off entirely under reduced motion or Save-Data (posters stay).
+   */
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const saveData = (navigator as any).connection?.saveData === true;
+  const videos = [...document.querySelectorAll<HTMLVideoElement>('[data-preview]')];
+
+  if (!reduce && !saveData && videos.length) {
+    let current: HTMLVideoElement | null = null;
+
+    const play = (v: HTMLVideoElement) => {
+      if (current && current !== v) stop(current);
+      current = v;
+      v.preload = 'auto';
+      const p = v.play();
+      if (p) p.then(() => current === v && v.classList.replace('opacity-0', 'opacity-100')).catch(() => {});
+    };
+    const stop = (v: HTMLVideoElement) => {
+      v.pause();
+      v.classList.replace('opacity-100', 'opacity-0');
+      if (current === v) current = null;
+    };
+    (window as any).__pausePreviews = () => current && stop(current);
+
+    const hover = matchMedia('(hover: hover) and (pointer: fine)').matches;
+    if (hover) {
+      videos.forEach((v) => {
+        const card = v.closest('[data-work-card]') as HTMLElement;
+        card.addEventListener('pointerenter', () => play(v));
+        card.addEventListener('pointerleave', () => stop(v));
+        card.addEventListener('focusin', () => play(v));
+        card.addEventListener('focusout', () => stop(v));
+      });
+    } else {
+      const ratios = new Map<HTMLVideoElement, number>();
+      const io = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((e) => ratios.set(e.target as HTMLVideoElement, e.isIntersecting ? e.intersectionRatio : 0));
+          // Most visible (≥60%) wins; ties go to the card nearest the viewport centre.
+          let best: HTMLVideoElement | null = null;
+          let bestRatio = 0.6;
+          let bestDist = Infinity;
+          const mid = innerHeight / 2;
+          ratios.forEach((r, v) => {
+            if (r < 0.6 || v.closest('[hidden]')) return;
+            const b = v.getBoundingClientRect();
+            const dist = Math.abs(b.top + b.height / 2 - mid);
+            if (r > bestRatio + 0.05 || (Math.abs(r - bestRatio) <= 0.05 && dist < bestDist)) {
+              bestRatio = Math.max(r, bestRatio);
+              bestDist = dist;
+              best = v;
+            }
+          });
+          if (best) play(best);
+          else if (current) stop(current);
+        },
+        { threshold: [0, 0.25, 0.6, 0.8, 1] },
+      );
+      videos.forEach((v) => io.observe(v));
+    }
+    document.addEventListener('visibilitychange', () => document.hidden && current && current.pause());
+  }
+</script>

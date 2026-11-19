@@ -1,0 +1,94 @@
+---
+/**
+ * Minimal quote carousel: CSS scroll-snap track (works without JS, swipeable),
+ * prev/next buttons + counter enhance it. Placeholder quotes are dev-only;
+ * with no real testimonials the section is omitted.
+ */
+import { testimonials } from '../data/content';
+import { visible } from '../lib/placeholder';
+import SectionHead from './SectionHead.astro';
+
+const items = visible(testimonials);
+const initials = (n: string) =>
+  n.split(/\s+/).map((p) => p[0]).slice(0, 2).join('').toUpperCase();
+---
+
+{
+  items.length > 0 && (
+    <section id="testimonials" class="container-x py-24 md:py-36" aria-labelledby="t-title">
+      <SectionHead track="A1" label="Testimonials" tc="00:01:16:00" />
+      <h2 id="t-title" class="sr-only">What clients say</h2>
+      <div
+        class:list={['relative mt-12 md:mt-16', items.some((t) => t.placeholder) && 'ph']}
+        aria-roledescription="carousel"
+        aria-label="Client testimonials"
+        data-carousel
+      >
+        {items.some((t) => t.placeholder) && <span class="ph-tag">PLACEHOLDER · testimonials · hidden in production</span>}
+        <ul class="no-scrollbar flex snap-x snap-mandatory overflow-x-auto scroll-smooth" data-track>
+          {items.map((t, i) => (
+            <li
+              class="w-full shrink-0 snap-start"
+              aria-roledescription="slide"
+              aria-label={`${i + 1} of ${items.length}`}
+            >
+              <figure class="grid gap-10 md:grid-cols-12">
+                <blockquote class="text-h3 leading-snug font-normal md:col-span-9 md:text-[clamp(1.5rem,1rem+1.6vw,2.5rem)] md:leading-[1.2] md:tracking-tight">
+                  <span class="serif mr-1 text-ember" aria-hidden="true">“</span>{t.quote}
+                </blockquote>
+                <figcaption class="flex items-center gap-4 md:col-span-3 md:self-end">
+                  {t.avatar ? (
+                    <img src={t.avatar} alt="" width="48" height="48" loading="lazy" class="size-12 rounded-full object-cover" />
+                  ) : (
+                    <span class="grid size-12 place-items-center rounded-full border border-line-strong font-mono text-xs text-muted" aria-hidden="true">
+                      {initials(t.name)}
+                    </span>
+                  )}
+                  <span class="flex flex-col">
+                    <span class="font-medium">{t.name}</span>
+                    <span class="text-sm text-muted">
+                      {t.channel} · {t.subscribers}
+                    </span>
+                  </span>
+                </figcaption>
+              </figure>
+            </li>
+          ))}
+        </ul>
+        {items.length > 1 && (
+          <div class="mt-10 flex items-center justify-between border-t border-line pt-5">
+            <p class="font-mono text-label text-muted tabular-nums" aria-hidden="true">
+              <span data-current>01</span> / {String(items.length).padStart(2, '0')}
+            </p>
+            <div class="flex gap-2">
+              <button type="button" class="btn btn-ghost size-11 p-0" aria-label="Previous testimonial" data-prev>←</button>
+              <button type="button" class="btn btn-ghost size-11 p-0" aria-label="Next testimonial" data-next>→</button>
+            </div>
+          </div>
+        )}
+      </div>
+    </section>
+  )
+}
+
+<style>
+  .no-scrollbar {
+    scrollbar-width: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+</style>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-carousel]').forEach((c) => {
+    const track = c.querySelector<HTMLElement>('[data-track]')!;
+    const cur = c.querySelector<HTMLElement>('[data-current]');
+    const n = track.children.length;
+    const idx = () => Math.round(track.scrollLeft / track.clientWidth);
+    const go = (i: number) => track.scrollTo({ left: ((i + n) % n) * track.clientWidth });
+    c.querySelector('[data-prev]')?.addEventListener('click', () => go(idx() - 1));
+    c.querySelector('[data-next]')?.addEventListener('click', () => go(idx() + 1));
+    track.addEventListener('scroll', () => cur && (cur.textContent = String(idx() + 1).padStart(2, '0')), { passive: true });
+  });
+</script>

@@ -1,7 +1,20 @@
 ---
 import Base from '../layouts/Base.astro';
+import Preloader from '../components/Preloader.astro';
+import Hero from '../components/Hero.astro';
+import Trust from '../components/Trust.astro';
 import SectionHead from '../components/SectionHead.astro';
-import HeroReel from '../components/HeroReel.astro';
+import WorkGrid from '../components/WorkGrid.astro';
+import Services from '../components/Services.astro';
+import Process from '../components/Process.astro';
+import RawVsEdited from '../components/RawVsEdited.astro';
+import Testimonials from '../components/Testimonials.astro';
+import Tools from '../components/Tools.astro';
+import About from '../components/About.astro';
+import Contact from '../components/Contact.astro';
+import Lightbox from '../components/Lightbox.astro';
+import Previews from '../components/Previews.astro';
+import { works, featuredWorks } from '../lib/works';
 import media from '../data/media.json';
 
 const r = media.reel;
@@ -9,57 +22,34 @@ const heroPreload = [
   { href: r['9x16'].poster.avif, media: '(max-width: 767px)' },
   { href: r['16x9'].poster.avif, media: '(min-width: 768px)' },
 ];
-
-// Stage 1 shell: layout, grid and tokens. Sections are filled in Stage 3.
-const shells = [
-  { id: 'trust', track: 'V0', label: 'Trust', tc: '00:00:08:00' },
-  { id: 'work', track: 'V1', label: 'Selected Work', tc: '00:00:16:00' },
-  { id: 'services', track: 'V2', label: 'Services', tc: '00:00:32:00' },
-  { id: 'process', track: 'V3', label: 'Process', tc: '00:00:48:00' },
-  { id: 'raw-vs-edited', track: 'FX', label: 'Raw vs Edited', tc: '00:01:04:00' },
-  { id: 'testimonials', track: 'A1', label: 'Testimonials', tc: '00:01:16:00' },
-  { id: 'tools', track: 'A2', label: 'Tools', tc: '00:01:28:00' },
-  { id: 'about', track: 'A3', label: 'About', tc: '00:01:40:00' },
-  { id: 'contact', track: 'OUT', label: 'Contact', tc: '00:02:10:00' },
-];
 ---
 
 <Base preload={heroPreload}>
-  <section class="relative isolate flex min-h-[100svh] items-end overflow-hidden pb-16 md:pb-24" aria-labelledby="hero-title">
-    <HeroReel />
-    <!-- Dark grade so the headline always clears AA over any frame -->
-    <div class="absolute inset-0 -z-10 bg-gradient-to-t from-ink via-ink/75 to-ink/35" aria-hidden="true"></div>
-    <div class="absolute inset-0 -z-10 bg-gradient-to-r from-ink/80 via-ink/20 to-transparent" aria-hidden="true"></div>
+  <Preloader />
+  <Hero />
+  <Trust />
 
-    <div class="container-x">
-      <p class="track mb-8"><span class="track-id">REC</span> Showreel — 2026</p>
-      <h1 id="hero-title" class="max-w-[14ch] text-display font-medium">
-        I edit videos people <span class="serif text-ember">actually</span> finish watching.
-      </h1>
-      <p class="mt-6 max-w-[46ch] text-lg text-muted md:text-xl">
-        Long-form YouTube, talking-head and podcast edits with smooth pacing, sharp storytelling, and sound that
-        holds attention.
+  <section id="work" class="container-x py-24 md:py-36" aria-labelledby="work-title">
+    <SectionHead track="V1" label="Selected Work" tc="00:00:16:00" />
+    <div class="mt-10 mb-12 grid gap-6 md:mt-14 md:mb-16 md:grid-cols-12">
+      <h2 id="work-title" class="text-h2 font-medium md:col-span-7" data-reveal>
+        Cuts that <span class="serif text-muted">hold</span> attention.
+      </h2>
+      <p class="max-w-[40ch] text-muted md:col-span-4 md:col-start-9 md:self-end" data-reveal style="--i:1">
+        Hover to preview, click to watch. Ads, talking-head and long-form edits for brands and creators.
       </p>
-      <div class="mt-10 flex flex-wrap gap-3">
-        <a href="#work" class="btn btn-primary" data-magnetic>View Work</a>
-        <a href="#contact" class="btn btn-ghost" data-magnetic>Book a Call</a>
-      </div>
     </div>
+    <WorkGrid works={featuredWorks} archiveLink totalCount={works.length} />
   </section>
 
-  {
-    shells.map((s) => (
-      <section id={s.id} class="container-x py-24 md:py-32">
-        <SectionHead track={s.track} label={s.label} tc={s.tc} />
-        <div class="mt-12 grid grid-cols-4 gap-4 md:grid-cols-12 md:gap-6">
-          <h2 class="col-span-4 text-h2 font-medium md:col-span-7">
-            {s.label} <span class="serif text-muted">section</span>
-          </h2>
-          <p class="col-span-4 text-muted md:col-span-4 md:col-start-9">
-            Stage 1 shell. This section is built in Stage 3.
-          </p>
-        </div>
-      </section>
-    ))
-  }
+  <Services />
+  <Process />
+  <RawVsEdited />
+  <Testimonials />
+  <Tools />
+  <About />
+  <Contact />
+
+  <Lightbox />
+  <Previews />
 </Base>

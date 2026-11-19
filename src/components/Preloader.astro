@@ -1,0 +1,63 @@
+---
+/**
+ * First-visit preloader: a timecode counts 00:00:00:00 → 00:00:01:00 (~0.8s),
+ * then the "slate" wipes up. Shown once per session (sessionStorage).
+ * Hidden by default: it only appears when the inline script opts in, so it can
+ * never block content if JS fails, and it's skipped under reduced motion.
+ */
+---
+
+<div class="preloader" aria-hidden="true" data-preloader>
+  <div class="flex items-center gap-3 font-mono text-sm tracking-[0.08em] text-muted tabular-nums">
+    <span class="inline-block size-2 rounded-full bg-ember"></span>
+    <span data-preloader-tc>00:00:00:00</span>
+  </div>
+  <div class="absolute inset-x-0 bottom-0 h-px bg-line">
+    <div class="h-full origin-left scale-x-0 bg-ember" data-preloader-bar></div>
+  </div>
+</div>
+
+<script is:inline>
+  (function () {
+    var KEY = 'pl-seen';
+    var el = document.querySelector('[data-preloader]');
+    var seen = false;
+    try { seen = sessionStorage.getItem(KEY) === '1'; sessionStorage.setItem(KEY, '1'); } catch (e) {}
+    if (!el || seen || matchMedia('(prefers-reduced-motion: reduce)').matches) return el && el.remove();
+
+    el.classList.add('is-on');
+    var tc = el.querySelector('[data-preloader-tc]');
+    var bar = el.querySelector('[data-preloader-bar]');
+    var FPS = 24, DUR = 800, t0 = performance.now();
+    function tick(now) {
+      var p = Math.min(1, (now - t0) / DUR);
+      var f = Math.round(p * FPS);
+      tc.textContent = '00:00:' + (f === FPS ? '01:00' : '00:' + (f < 10 ? '0' : '') + f);
+      bar.style.transform = 'scaleX(' + p + ')';
+      if (p < 1) requestAnimationFrame(tick);
+      else {
+        el.classList.add('is-done');
+        setTimeout(function () { el.remove(); }, 650);
+      }
+    }
+    requestAnimationFrame(tick);
+  })();
+</script>
+
+<style>
+  .preloader {
+    position: fixed;
+    inset: 0;
+    z-index: 90;
+    display: none;
+    place-items: center;
+    background: var(--color-ink);
+  }
+  .preloader:global(.is-on) {
+    display: grid;
+  }
+  .preloader:global(.is-done) {
+    transform: translateY(-100%);
+    transition: transform 0.6s var(--ease-out-expo);
+  }
+</style>

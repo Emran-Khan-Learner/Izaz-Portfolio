@@ -1,0 +1,41 @@
+---
+import { about } from '../data/content';
+import { site } from '../data/site.mjs';
+import { SHOW_PLACEHOLDERS } from '../lib/placeholder';
+import SectionHead from './SectionHead.astro';
+
+const show = !about.placeholder || SHOW_PLACEHOLDERS;
+---
+
+{
+  show && (
+    <section id="about" class="container-x py-24 md:py-36" aria-labelledby="about-title">
+      <SectionHead track="A3" label="About" tc="00:01:40:00" />
+      <div class:list={['mt-12 grid gap-10 md:mt-16 md:grid-cols-12 md:gap-6', about.placeholder && 'ph']}>
+        {about.placeholder && <span class="ph-tag">PLACEHOLDER · about text & portrait · hidden in production</span>}
+        <div class="md:col-span-5 lg:col-span-4" data-reveal>
+          <div class="relative aspect-4/5 overflow-hidden rounded-lg border border-line bg-surface">
+            {about.portrait ? (
+              <img src={about.portrait} alt={`Portrait of ${site.name}`} width="800" height="1000" loading="lazy" decoding="async" class="size-full object-cover grayscale transition duration-700 hover:grayscale-0" />
+            ) : (
+              <div class="absolute inset-0 grid place-items-center font-mono text-label text-faint uppercase">Portrait</div>
+            )}
+            <span class="absolute bottom-3 left-3 font-mono text-[10px] tracking-widest text-fg/70 uppercase">
+              {site.name}
+            </span>
+          </div>
+        </div>
+        <div class="flex flex-col justify-between gap-10 md:col-span-7 md:col-start-6 lg:col-span-7 lg:col-start-6">
+          <h2 id="about-title" class="text-h2 font-medium" data-reveal>
+            Hi, I'm {site.name.split(' ')[0]}. I care about the <span class="serif text-ember">cut</span> you don't notice.
+          </h2>
+          <div class="flex max-w-[56ch] flex-col gap-5 text-lg leading-relaxed text-muted">
+            {about.paragraphs.map((p, i) => (
+              <p data-reveal style={`--i:${i + 1}`}>{p}</p>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}

@@ -1,0 +1,55 @@
+---
+/**
+ * Tool badges: simple monogram tiles (no third-party logo files).
+ * Monochrome by default, brand colour on hover/focus.
+ */
+import { tools } from '../data/content';
+import SectionHead from './SectionHead.astro';
+
+const mono: Record<string, string> = {
+  'Premiere Pro': 'Pr',
+  'After Effects': 'Ae',
+  'DaVinci Resolve': 'Dv',
+  Audition: 'Au',
+  Photoshop: 'Ps',
+  CapCut: 'Cc',
+};
+---
+
+<section id="tools" class="container-x py-24 md:py-32" aria-labelledby="tools-title">
+  <SectionHead track="A2" label="Toolkit" tc="00:01:28:00" />
+  <div class="mt-10 grid gap-10 md:mt-14 md:grid-cols-12">
+    <h2 id="tools-title" class="text-h2 font-medium md:col-span-5" data-reveal>
+      The <span class="serif text-muted">suite.</span>
+    </h2>
+    <ul class="grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-line bg-line sm:grid-cols-3 md:col-span-7">
+      {
+        tools.map((t, i) => (
+          <li class="tool group flex items-center gap-4 bg-ink p-5 md:p-6" style={`--brand:${t.color}; --i:${i}`} data-reveal>
+            <span class="tool-badge grid size-11 shrink-0 place-items-center rounded-md border font-semibold tracking-[-0.02em]" aria-hidden="true">
+              {mono[t.name] ?? t.name.slice(0, 2)}
+            </span>
+            <span class="text-sm text-muted transition-colors group-hover:text-fg">{t.name}</span>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>
+
+<style>
+  .tool-badge {
+    color: var(--color-muted);
+    border-color: var(--color-line-strong);
+    background: transparent;
+    transition:
+      color 0.35s var(--ease-out-quart),
+      border-color 0.35s var(--ease-out-quart),
+      background-color 0.35s var(--ease-out-quart);
+  }
+  .tool:hover .tool-badge {
+    color: var(--brand);
+    border-color: color-mix(in oklab, var(--brand) 60%, transparent);
+    background: color-mix(in oklab, var(--brand) 12%, transparent);
+  }
+</style>

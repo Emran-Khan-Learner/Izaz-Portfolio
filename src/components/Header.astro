@@ -1,12 +1,14 @@
 ---
 import { site } from '../data/site.mjs';
 import { filled, SHOW_PLACEHOLDERS } from '../lib/placeholder';
+import { about } from '../data/content';
 
+// Never link to a section that's omitted from the production build.
 const nav = [
   { href: '/#work', label: 'Work' },
   { href: '/#services', label: 'Services' },
   { href: '/#process', label: 'Process' },
-  { href: '/#about', label: 'About' },
+  ...(!about.placeholder || SHOW_PLACEHOLDERS ? [{ href: '/#about', label: 'About' }] : []),
 ];
 const bookHref = filled(site.calendly) ? site.calendly : '/#contact';
 const bookExternal = filled(site.calendly);

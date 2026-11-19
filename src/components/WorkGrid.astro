@@ -1,0 +1,135 @@
+---
+/**
+ * Filterable work grid. Layout: 10-col grid on desktop (vertical card = 2 cols
+ * → 5 per row; landscape = half width, or full width when it's an odd one out).
+ * Filtering toggles `hidden` and animates the reflow with the View Transitions
+ * API where available (no library). Without JS every card is shown.
+ */
+import VideoCard from './VideoCard.astro';
+import { usedCategories, type Work } from '../lib/works';
+
+interface Props {
+  works: Work[];
+  label?: string;
+  /** Show a "Full archive →" tile that fills the last row (home page). */
+  archiveLink?: boolean;
+  totalCount?: number;
+}
+const { works, label = 'Filter work by category', archiveLink = false, totalCount = works.length } = Astro.props;
+const cats = usedCategories(works);
+
+// Spans per breakpoint (cols: base 2 · md 6 · lg 10). On lg a 16:9 card over
+// 6 cols is ~the same height as a 9:16 card over 2 cols, so rows line up.
+const SPAN = {
+  '9:16': { base: 1, md: 2, lg: 2, cls: 'col-span-1 md:col-span-2 lg:col-span-2' },
+  '16:9': { base: 2, md: 6, lg: 6, cls: 'col-span-2 md:col-span-6 lg:col-span-6' },
+} as const;
+const used = (bp: 'base' | 'md' | 'lg') => works.reduce((n, w) => n + SPAN[w.aspect][bp], 0);
+const rem = (bp: 'base' | 'md' | 'lg', cols: number) => (cols - (used(bp) % cols)) % cols || cols;
+const tileCls = [
+  { 1: 'col-span-1', 2: 'col-span-2' }[rem('base', 2)],
+  { 2: 'md:col-span-2', 4: 'md:col-span-4', 6: 'md:col-span-6' }[rem('md', 6)],
+  { 2: 'lg:col-span-2', 4: 'lg:col-span-4', 6: 'lg:col-span-6', 8: 'lg:col-span-8', 10: 'lg:col-span-10' }[rem('lg', 10)],
+].join(' ');
+---
+
+<div data-work-grid>
+  {
+    cats.length > 2 && (
+      <div class="filters mb-8 flex flex-wrap gap-2" role="group" aria-label={label}>
+        {cats.map((c, i) => (
+          <button
+            type="button"
+            class="filter-btn rounded-full border border-line-strong px-4 py-2 text-sm text-muted transition-colors hover:border-fg hover:text-fg"
+            aria-pressed={i === 0 ? 'true' : 'false'}
+            data-filter={c.id}
+          >
+            {c.label}
+            <span class="ml-1 font-mono text-[10px] text-faint tabular-nums">
+              {c.id === 'all' ? works.length : works.filter((w) => w.category === c.id).length}
+            </span>
+          </button>
+        ))}
+      </div>
+    )
+  }
+  <div class="grid grid-cols-2 items-start gap-x-4 gap-y-10 md:grid-cols-6 md:gap-x-6 lg:grid-cols-10">
+    {works.map((w, i) => <VideoCard work={w} index={i} class={SPAN[w.aspect].cls} />)}
+    {
+      archiveLink && (
+        <a
+          href="/work"
+          class:list={[
+            'archive-tile group flex min-h-48 flex-col justify-between self-stretch rounded-md border border-line p-5 transition-colors hover:border-line-strong md:p-6',
+            tileCls,
+          ]}
+          data-cursor="view"
+          data-reveal
+        >
+          <span class="track">
+            <span class="track-id">ALL</span>
+            <span class="tabular-nums">{String(totalCount).padStart(2, '0')} projects</span>
+          </span>
+          <span class="flex items-end justify-between gap-4">
+            <span class="text-h3 font-medium">
+              Full <span class="serif text-muted">archive</span>
+            </span>
+            <span class="grid size-11 shrink-0 place-items-center rounded-full border border-line-strong transition-colors group-hover:border-ember group-hover:bg-ember group-hover:text-ink" aria-hidden="true">→</span>
+          </span>
+        </a>
+      )
+    }
+  </div>
+  <p class="sr-only" aria-live="polite" data-filter-status></p>
+</div>
+
+<style>
+  :global(html.no-js) .filters {
+    display: none;
+  }
+  .filter-btn[aria-pressed='true'] {
+    background: var(--color-fg);
+    border-color: var(--color-fg);
+    color: var(--color-ink);
+  }
+  .filter-btn[aria-pressed='true'] span {
+    color: var(--color-ink);
+    opacity: 0.6;
+  }
+  ::view-transition-group(*) {
+    animation-duration: 0.45s;
+    animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+</style>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-work-grid]').forEach((grid) => {
+    const buttons = [...grid.querySelectorAll<HTMLButtonElement>('[data-filter]')];
+    const cards = [...grid.querySelectorAll<HTMLElement>('[data-work-card]')];
+    const status = grid.querySelector<HTMLElement>('[data-filter-status]');
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    const apply = (id: string) => {
+      let n = 0;
+      cards.forEach((c) => {
+        const show = id === 'all' || c.dataset.category === id;
+        c.hidden = !show;
+        if (show) {
+          n++;
+          c.classList.add('is-in'); // never leave a filtered-in card mid-reveal
+        }
+      });
+      buttons.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.filter === id)));
+      if (status) status.textContent = `Showing ${n} project${n === 1 ? '' : 's'}`;
+    };
+
+    buttons.forEach((b) =>
+      b.addEventListener('click', () => {
+        const id = b.dataset.filter!;
+        const doc = document as Document & { startViewTransition?: (cb: () => void) => unknown };
+        if (doc.startViewTransition && !reduce) doc.startViewTransition(() => apply(id));
+        else apply(id);
+      }),
+    );
+  });
+</script>

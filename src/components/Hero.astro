@@ -1,0 +1,70 @@
+---
+import HeroReel from './HeroReel.astro';
+import { site } from '../data/site.mjs';
+import { filled } from '../lib/placeholder';
+
+const book = filled(site.calendly) ? site.calendly : '#contact';
+---
+
+<section
+  class="relative isolate flex min-h-svh items-end overflow-hidden pt-24 pb-14 md:pb-20"
+  aria-labelledby="hero-title"
+>
+  <HeroReel />
+  <!-- Grade: keeps the headline AA-legible over any frame, incl. burned-in captions -->
+  <div class="absolute inset-0 -z-10 bg-linear-to-t from-ink via-ink/80 to-ink/30" aria-hidden="true"></div>
+  <div class="absolute inset-0 -z-10 bg-linear-to-r from-ink/90 via-ink/55 to-ink/10" aria-hidden="true"></div>
+  <div
+    class="absolute inset-x-0 bottom-0 -z-10 h-2/3 backdrop-blur-[2px] mask-t-from-40% mask-t-to-100%"
+    aria-hidden="true"
+  >
+  </div>
+
+  <div class="container-x">
+    <p class="track mb-6 md:mb-8" data-reveal>
+      <span class="track-id"><span class="mr-1.5 inline-block size-1.5 rounded-full bg-ember"></span>REC</span>
+      Showreel — {new Date().getFullYear()}
+    </p>
+    <h1 id="hero-title" class="max-w-[14ch] text-display font-medium" data-split>
+      <span class="line block">I edit videos people</span>
+      <span class="line block"><span class="serif text-ember">actually</span> finish</span>
+      <span class="line block">watching.</span>
+    </h1>
+    <div class="mt-8 flex flex-col gap-8 md:mt-10 md:flex-row md:items-end md:justify-between">
+      <p class="max-w-[44ch] text-lg text-muted md:text-xl" data-reveal style="--i:3">
+        {site.role} for long-form YouTube, talking-head and podcast content — smooth pacing, sharp storytelling, sound
+        that holds attention.
+      </p>
+      <div class="flex flex-wrap gap-3" data-reveal style="--i:4">
+        <a href="#work" class="btn btn-primary" data-magnetic data-cursor="view">View Work</a>
+        <a
+          href={book}
+          class="btn btn-ghost"
+          data-magnetic
+          {...filled(site.calendly) && { target: '_blank', rel: 'noopener' }}>Book a Call</a
+        >
+      </div>
+    </div>
+  </div>
+
+  <a
+    href="#trust"
+    class="absolute right-4 bottom-6 hidden items-center gap-3 font-mono text-label text-muted uppercase hover:text-fg md:right-8 md:flex xl:right-12"
+    aria-label="Scroll to content"
+  >
+    Scroll
+    <span class="relative block h-10 w-px overflow-hidden bg-line-strong" aria-hidden="true">
+      <span class="scroll-cue absolute inset-x-0 top-0 h-1/2 bg-fg"></span>
+    </span>
+  </a>
+</section>
+
+<style>
+  .scroll-cue {
+    animation: cue 2s var(--ease-out-quart) infinite;
+  }
+  @keyframes cue {
+    0% { transform: translateY(-100%); }
+    100% { transform: translateY(200%); }
+  }
+</style>

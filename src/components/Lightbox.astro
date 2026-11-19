@@ -1,0 +1,147 @@
+---
+/**
+ * Fullscreen video lightbox built on <dialog>:
+ * showModal() makes the page inert (focus trap), Esc closes natively,
+ * focus returns to the card that opened it.
+ * Source per works.json entry:
+ *  - YouTube: privacy-enhanced iframe injected ONLY on open (facade: no YouTube
+ *    JS loads until a visitor asks for the video).
+ *  - Direct URL (Bunny Stream / Vimeo file / MP4): native <video controls>.
+ *  - Neither yet: the preview loop, large, with a dev-only note.
+ */
+---
+
+<dialog
+  class="lightbox m-0 h-dvh max-h-none w-screen max-w-none bg-transparent p-0 text-fg backdrop:bg-ink/92 backdrop:backdrop-blur-sm"
+  aria-labelledby="lb-title"
+  data-lightbox
+>
+  <div class="flex h-full flex-col">
+    <div class="container-x flex h-16 shrink-0 items-center justify-between gap-4">
+      <p class="track min-w-0">
+        <span class="track-id">V1</span><span id="lb-title" class="truncate normal-case" data-lb-title></span>
+      </p>
+      <button
+        type="button"
+        class="btn btn-ghost h-10 shrink-0 px-4 text-sm"
+        data-lb-close
+        aria-label="Close video (Esc)"
+      >
+        Close <span class="font-mono text-[10px] text-muted">ESC</span>
+      </button>
+    </div>
+    <div class="flex min-h-0 flex-1 items-center justify-center px-4 pb-6 md:px-8 md:pb-10" data-lb-backdrop>
+      <div class="lb-stage relative overflow-hidden rounded-md bg-black shadow-2xl shadow-black" data-lb-stage></div>
+    </div>
+    <p class="pb-4 text-center font-mono text-[11px] text-muted" data-lb-note hidden></p>
+  </div>
+</dialog>
+
+<style>
+  .lightbox[open] {
+    animation: lb-in 0.35s var(--ease-out-expo);
+  }
+  .lightbox::backdrop {
+    animation: lb-fade 0.3s ease-out;
+  }
+  @keyframes lb-in {
+    from { opacity: 0; transform: scale(0.98); }
+  }
+  @keyframes lb-fade {
+    from { opacity: 0; }
+  }
+  /* Stage sized by aspect: as large as fits the viewport */
+  .lb-stage[data-aspect='16:9'] {
+    aspect-ratio: 16 / 9;
+    width: min(100%, calc((100dvh - 8rem) * 16 / 9));
+  }
+  .lb-stage[data-aspect='9:16'] {
+    aspect-ratio: 9 / 16;
+    height: min(calc(100dvh - 8rem), calc((100vw - 2rem) * 16 / 9));
+  }
+  .lb-stage :global(iframe),
+  .lb-stage :global(video) {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+  }
+</style>
+
+<script>
+  const dlg = document.querySelector<HTMLDialogElement>('[data-lightbox]');
+  if (dlg) {
+    const stage = dlg.querySelector<HTMLElement>('[data-lb-stage]')!;
+    const title = dlg.querySelector<HTMLElement>('[data-lb-title]')!;
+    const note = dlg.querySelector<HTMLElement>('[data-lb-note]')!;
+    let opener: HTMLElement | null = null;
+
+    const open = (btn: HTMLElement) => {
+      const d = btn.dataset;
+      opener = btn;
+      (window as any).__pausePreviews?.();
+      (window as any).__lenis?.stop();
+      title.textContent = d.title ?? '';
+      stage.dataset.aspect = d.aspect ?? '16:9';
+      stage.replaceChildren();
+      note.hidden = true;
+
+      if (d.fullKind === 'youtube' && d.fullId) {
+        const f = document.createElement('iframe');
+        f.src = `https://www.youtube-nocookie.com/embed/${encodeURIComponent(d.fullId)}?autoplay=1&playsinline=1&rel=0&modestbranding=1`;
+        f.title = d.title ?? 'Video';
+        f.allow = 'autoplay; encrypted-media; picture-in-picture; fullscreen';
+        f.allowFullscreen = true;
+        stage.append(f);
+      } else {
+        const v = document.createElement('video');
+        v.controls = true;
+        v.playsInline = true;
+        v.autoplay = true;
+        if (d.poster) v.poster = d.poster;
+        if (d.fullKind === 'url' && d.fullSrc) {
+          v.src = d.fullSrc;
+        } else {
+          // No full video linked yet → show the preview loop.
+          v.muted = true;
+          v.loop = true;
+          for (const [src, type] of [[d.previewWebm, 'video/webm'], [d.previewMp4, 'video/mp4']]) {
+            if (!src) continue;
+            const s = document.createElement('source');
+            s.src = src;
+            s.type = type!;
+            v.append(s);
+          }
+          if (import.meta.env.DEV) {
+            note.textContent = 'PLACEHOLDER · no full video in works.json yet — showing preview loop';
+            note.hidden = false;
+          }
+        }
+        stage.append(v);
+      }
+      dlg.showModal();
+      dlg.querySelector<HTMLElement>('[data-lb-close]')?.focus();
+    };
+
+    const close = () => dlg.open && dlg.close();
+    dlg.addEventListener('close', () => {
+      stage.replaceChildren(); // stops playback & unloads the iframe
+      (window as any).__lenis?.start();
+      opener?.focus();
+    });
+    dlg.querySelector('[data-lb-close]')?.addEventListener('click', close);
+    // Click outside the video closes
+    dlg.querySelector('[data-lb-backdrop]')?.addEventListener('click', (e) => {
+      if (e.target === e.currentTarget) close();
+    });
+
+    document.addEventListener('click', (e) => {
+      const btn = (e.target as HTMLElement).closest<HTMLElement>('[data-open-work]');
+      if (btn) {
+        e.preventDefault();
+        open(btn);
+      }
+    });
+  }
+</script>

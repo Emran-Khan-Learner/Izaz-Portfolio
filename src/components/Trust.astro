@@ -1,0 +1,72 @@
+---
+import { stats, clientLogos } from '../data/content';
+import { visible } from '../lib/placeholder';
+const s = visible(stats);
+const logos = visible(clientLogos);
+const anyPlaceholder = [...s, ...logos].some((x) => x.placeholder);
+// Marquee: repeat the set until it's wide enough, then render it twice so a
+// -50% translate loops seamlessly. The second copy is aria-hidden.
+const seq = logos.length ? Array.from({ length: Math.ceil(8 / logos.length) }, () => logos).flat() : [];
+const loop = [...seq, ...seq];
+---
+
+{
+  (s.length > 0 || logos.length > 0) && (
+    <section id="trust" class="border-y border-line" aria-label="Track record">
+      {s.length > 0 && (
+        <dl class:list={['container-x grid grid-cols-2 md:grid-cols-4', anyPlaceholder && 'ph']}>
+          {anyPlaceholder && <span class="ph-tag">PLACEHOLDER · stats & logos · hidden in production</span>}
+          {s.map((stat, i) => (
+            <div
+              class:list={[
+                'flex flex-col gap-2 py-8 md:py-12',
+                i % 2 === 1 && 'border-l border-line pl-4 md:pl-8',
+                i >= 2 && 'border-t border-line md:border-t-0',
+                i === 2 && 'md:border-l md:pl-8',
+              ]}
+              data-reveal
+              style={`--i:${i}`}
+            >
+              <dt class="order-2 font-mono text-label text-muted uppercase">{stat.label}</dt>
+              <dd class="order-1 text-h2 font-medium tabular-nums">
+                <span data-count={stat.value}>{stat.value}</span>
+                <span class="text-muted">{stat.suffix}</span>
+              </dd>
+            </div>
+          ))}
+        </dl>
+      )}
+
+      {logos.length > 0 && (
+        <div class="relative overflow-hidden border-t border-line py-8 mask-x-from-85% mask-x-to-100%">
+          <ul class="marquee flex w-max gap-16 pr-16" aria-label="Clients and channels">
+            {loop.map((l, i) => (
+              <li
+                class="font-mono text-sm tracking-[0.08em] whitespace-nowrap text-faint uppercase"
+                aria-hidden={i >= logos.length ? 'true' : undefined}
+                data-dup={i >= seq.length ? '' : undefined}
+              >
+                {l.name}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </section>
+  )
+}
+
+<style>
+  .marquee {
+    animation: marquee 40s linear infinite;
+  }
+  .marquee:hover {
+    animation-play-state: paused;
+  }
+  @keyframes marquee {
+    to { transform: translateX(-50%); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .marquee { animation: none; }
+  }
+</style>
