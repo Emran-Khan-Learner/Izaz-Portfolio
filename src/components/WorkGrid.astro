@@ -13,9 +13,11 @@ interface Props {
   label?: string;
   /** Show a "Full archive →" tile that fills the last row (home page). */
   archiveLink?: boolean;
+  /** First card is above the fold (archive page): load its poster eagerly at high priority. */
+  eagerFirst?: boolean;
   totalCount?: number;
 }
-const { works, label = 'Filter work by category', archiveLink = false, totalCount = works.length } = Astro.props;
+const { works, label = 'Filter work by category', archiveLink = false, eagerFirst = false, totalCount = works.length } = Astro.props;
 const cats = usedCategories(works);
 
 // Spans per breakpoint (cols: base 2 · md 6 · lg 10). On lg a 16:9 card over
@@ -54,7 +56,7 @@ const tileCls = [
     )
   }
   <div class="grid grid-cols-2 items-start gap-x-4 gap-y-10 md:grid-cols-6 md:gap-x-6 lg:grid-cols-10">
-    {works.map((w, i) => <VideoCard work={w} index={i} class={SPAN[w.aspect].cls} />)}
+    {works.map((w, i) => <VideoCard work={w} index={i} class={SPAN[w.aspect].cls} eager={eagerFirst && i === 0} />)}
     {
       archiveLink && (
         <a

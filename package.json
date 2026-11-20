@@ -9,7 +9,10 @@
     "preview": "astro preview",
     "media": "node scripts/make-previews.mjs",
     "fix:win": "npm i --no-save --force @bruits/satteri-wasm32-wasi@0.11.7",
-    "icons": "node scripts/make-icons.mjs"
+    "icons": "node scripts/make-icons.mjs",
+    "og": "node scripts/make-og.mjs",
+    "grain": "node scripts/make-grain.mjs",
+    "fonts:subset": "python scripts/subset-fonts.py"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.6",

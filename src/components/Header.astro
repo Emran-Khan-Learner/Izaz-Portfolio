@@ -16,14 +16,15 @@ const bookExternal = filled(site.calendly);
 
 <header class="fixed inset-x-0 top-0 z-50">
   <div
-    class="absolute inset-0 -z-10 border-b border-line/0 bg-ink/70 backdrop-blur-md transition-colors"
+    class="absolute inset-0 -z-10 bg-ink/90 md:bg-ink/70 md:backdrop-blur-md"
     aria-hidden="true"
   >
   </div>
   <div class="container-x flex h-16 items-center justify-between gap-6">
-    <a href="/" class="group flex items-baseline gap-3" aria-label={`${site.name}, home`}>
+    <a href="/" class="group flex items-baseline gap-3">
       <span class="text-[15px] font-semibold tracking-[-0.02em]">{site.shortName}</span>
       <span class="hidden font-mono text-label text-muted uppercase sm:inline">{site.role}</span>
+      <span class="sr-only">— home</span>
     </a>
 
     <nav aria-label="Primary" class="hidden md:block">

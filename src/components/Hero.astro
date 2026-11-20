@@ -14,14 +14,9 @@ const book = filled(site.calendly) ? site.calendly : '#contact';
   <!-- Grade: keeps the headline AA-legible over any frame, incl. burned-in captions -->
   <div class="absolute inset-0 -z-10 bg-linear-to-t from-ink via-ink/80 to-ink/30" aria-hidden="true"></div>
   <div class="absolute inset-0 -z-10 bg-linear-to-r from-ink/90 via-ink/55 to-ink/10" aria-hidden="true"></div>
-  <div
-    class="absolute inset-x-0 bottom-0 -z-10 h-2/3 backdrop-blur-[2px] mask-t-from-40% mask-t-to-100%"
-    aria-hidden="true"
-  >
-  </div>
 
   <div class="container-x">
-    <p class="track mb-6 md:mb-8" data-reveal>
+    <p class="track mb-6 md:mb-8" data-intro>
       <span class="track-id"><span class="mr-1.5 inline-block size-1.5 rounded-full bg-ember"></span>REC</span>
       Showreel — {new Date().getFullYear()}
     </p>
@@ -31,11 +26,11 @@ const book = filled(site.calendly) ? site.calendly : '#contact';
       <span class="line" style="--l:2"><span class="line-inner">watching.</span></span>
     </h1>
     <div class="mt-8 flex flex-col gap-8 md:mt-10 md:flex-row md:items-end md:justify-between">
-      <p class="max-w-[44ch] text-lg text-muted md:text-xl" data-reveal style="--i:3">
+      <p class="max-w-[44ch] text-lg text-muted md:text-xl" data-intro style="--i:3">
         {site.role} for long-form YouTube, talking-head and podcast content — smooth pacing, sharp storytelling, sound
         that holds attention.
       </p>
-      <div class="flex flex-wrap gap-3" data-reveal style="--i:4">
+      <div class="flex flex-wrap gap-3" data-intro style="--i:4">
         <a href="#work" class="btn btn-primary" data-magnetic data-cursor="view">View Work</a>
         <a
           href={book}

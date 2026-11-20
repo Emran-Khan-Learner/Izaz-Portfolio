@@ -1,29 +1,38 @@
-<script>
-  /**
-   * Scroll reveals: adds .is-in when a [data-reveal] element enters the
-   * viewport (CSS handles the fade/slide + stagger via --i). Vanilla IO —
-   * no animation library on the critical path.
-   * Runs only when <html> has .motion (reduced motion off). If the first-visit
-   * preloader is running, waits for it so the hero reveals under the wipe.
-   */
-  const root = document.documentElement;
-  if (root.classList.contains('motion')) {
-    (window as any).__motionReady = true;
-    const start = () => {
-      const io = new IntersectionObserver(
-        (entries) => {
-          for (const e of entries) {
-            if (e.isIntersecting) {
-              e.target.classList.add('is-in');
-              io.unobserve(e.target);
+<!--
+  Scroll reveals: adds .is-in when a [data-reveal] element enters the viewport
+  (CSS handles the fade/slide + stagger via --i).
+  Inline classic script at the end of <body>: it runs during parsing instead of
+  waiting for deferred modules, so anything already in view (e.g. the first work
+  card on /work) is revealed on the first frame and never delays LCP.
+  Only active when <html> has .motion; waits for the first-visit preloader.
+-->
+<script is:inline>
+  (function () {
+    var root = document.documentElement;
+    if (!root.classList.contains('motion') || !('IntersectionObserver' in window)) {
+      root.classList.remove('motion');
+      return;
+    }
+    window.__motionReady = true;
+    function start() {
+      var first = true; // the initial callback reports what's on screen at load
+      var io = new IntersectionObserver(
+        function (entries) {
+          for (var i = 0; i < entries.length; i++) {
+            if (entries[i].isIntersecting) {
+              entries[i].target.classList.add('is-in');
+              if (first) entries[i].target.classList.add('is-first');
+              io.unobserve(entries[i].target);
             }
           }
+          first = false;
         },
-        { rootMargin: '0px 0px -8% 0px' },
+        { rootMargin: '0px 0px -8% 0px' }
       );
-      document.querySelectorAll('[data-reveal]').forEach((el) => io.observe(el));
-    };
+      var els = document.querySelectorAll('[data-reveal]');
+      for (var j = 0; j < els.length; j++) io.observe(els[j]);
+    }
     if (root.classList.contains('preloading')) addEventListener('preloader:done', start, { once: true });
     else start();
-  }
+  })();
 </script>

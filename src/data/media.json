@@ -18,6 +18,11 @@
       "sizesMB": {
         "mp4": 0.83,
         "webm": 0.74
+      },
+      "posterSm": {
+        "avif": "/media/ad-01-final/poster-sm.avif",
+        "webp": "/media/ad-01-final/poster-sm.webp",
+        "width": 640
       }
     },
     "ad-001": {
@@ -38,6 +43,11 @@
       "sizesMB": {
         "mp4": 1.2,
         "webm": 1.05
+      },
+      "posterSm": {
+        "avif": "/media/ad-001/poster-sm.avif",
+        "webp": "/media/ad-001/poster-sm.webp",
+        "width": 360
       }
     },
     "ad-01": {
@@ -58,6 +68,11 @@
       "sizesMB": {
         "mp4": 0.59,
         "webm": 0.53
+      },
+      "posterSm": {
+        "avif": "/media/ad-01/poster-sm.avif",
+        "webp": "/media/ad-01/poster-sm.webp",
+        "width": 360
       }
     },
     "ad-03": {
@@ -78,6 +93,11 @@
       "sizesMB": {
         "mp4": 1.1,
         "webm": 1.21
+      },
+      "posterSm": {
+        "avif": "/media/ad-03/poster-sm.avif",
+        "webp": "/media/ad-03/poster-sm.webp",
+        "width": 360
       }
     },
     "ad-40": {
@@ -98,6 +118,11 @@
       "sizesMB": {
         "mp4": 0.34,
         "webm": 0.44
+      },
+      "posterSm": {
+        "avif": "/media/ad-40/poster-sm.avif",
+        "webp": "/media/ad-40/poster-sm.webp",
+        "width": 360
       }
     },
     "tiktok-02": {
@@ -118,6 +143,11 @@
       "sizesMB": {
         "mp4": 0.83,
         "webm": 0.84
+      },
+      "posterSm": {
+        "avif": "/media/tiktok-02/poster-sm.avif",
+        "webp": "/media/tiktok-02/poster-sm.webp",
+        "width": 360
       }
     }
   },

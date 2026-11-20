@@ -61,7 +61,18 @@
         },
         { threshold: [0, 0.25, 0.6, 0.8, 1] },
       );
-      videos.forEach((v) => io.observe(v));
+      // Touch: wait for the first scroll/touch before autoplaying, so a
+      // preview frame never becomes the page's LCP and the first paint stays light.
+      const begin = () => videos.forEach((v) => io.observe(v));
+      const once = { once: true, passive: true } as const;
+      let started = false;
+      const go = () => {
+        if (started) return;
+        started = true;
+        begin();
+      };
+      addEventListener('scroll', go, once);
+      addEventListener('touchstart', go, once);
     }
     document.addEventListener('visibilitychange', () => document.hidden && current && current.pause());
   }

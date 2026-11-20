@@ -4,14 +4,14 @@
 @font-face {
   font-family: 'Geist';
   src: url('/fonts/Geist-Variable.woff2') format('woff2');
-  font-weight: 100 900;
+  font-weight: 400 600;
   font-style: normal;
   font-display: swap;
 }
 @font-face {
   font-family: 'Geist Mono';
   src: url('/fonts/GeistMono-Variable.woff2') format('woff2');
-  font-weight: 100 900;
+  font-weight: 400 600;
   font-style: normal;
   font-display: swap;
 }
@@ -41,7 +41,7 @@
   --color-line-strong: #2c2c31;
   --color-fg: #ededed; /* primary text  (17.4:1 on ink) */
   --color-muted: #8a8a90; /* secondary text (5.9:1 on ink, AA) */
-  --color-faint: #5c5c63; /* decorative only, never body text */
+  --color-faint: #7e7e86; /* dim labels — still AA: 4.9:1 on ink, 4.7:1 on surface */
   --color-ember: #ff5a1f; /* THE accent — use sparingly (6.4:1 on ink) */
   --color-ember-dim: #ff5a1f26;
 
@@ -234,15 +234,25 @@
   }
 }
 
-/* ── Film grain (static SVG noise, GPU-cheap) ───────────── */
+/* ── Film grain ───────────────────────────────────────────
+   A pre-rendered 4KB PNG tile (scripts/make-grain.mjs) — a live SVG
+   feTurbulence filter over the whole viewport cost ~0.5–1s of first paint
+   on throttled mobile. Static on touch devices; gently animated on desktop. */
 .grain {
   position: fixed;
-  inset: -50%;
+  inset: 0;
   z-index: 60;
   pointer-events: none;
-  opacity: 0.05;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .9 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  animation: grain 1.2s steps(6) infinite;
+  opacity: 0.045;
+  background: url('/grain.png') repeat;
+  background-size: 128px;
+}
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .grain {
+    inset: -10%;
+    opacity: 0.06;
+    animation: grain 1.2s steps(6) infinite;
+  }
 }
 @keyframes grain {
   0% { transform: translate(0, 0); }
@@ -270,6 +280,12 @@ html.motion [data-reveal].is-in {
     transform 0.7s var(--ease-out-expo);
   transition-delay: calc(var(--i, 0) * 70ms);
 }
+/* Already on screen at load: full opacity on the first frame (so it can be the
+   LCP immediately), only a short slide-up. */
+html.motion [data-reveal].is-in.is-first {
+  transition: transform 0.7s var(--ease-out-expo);
+  transition-delay: calc(var(--i, 0) * 50ms);
+}
 
 /* ── Headline line reveal (CSS-only, no JS needed) ──────────
    Each line slides up out of a mask. Waits while the first-visit
@@ -296,6 +312,33 @@ html.motion:not(.preloading) [data-split] .line-inner {
 @keyframes line-up {
   to {
     transform: none;
+  }
+}
+
+/* Above-the-fold intro: pure CSS (no JS on the critical path, so it never
+   delays LCP). Holds on its first frame while the preloader runs. */
+html.motion [data-intro] {
+  animation: intro 0.7s var(--ease-out-quart) both;
+  animation-delay: calc(var(--i, 0) * 70ms + 120ms);
+}
+html.motion.preloading [data-intro] {
+  animation-play-state: paused;
+}
+@keyframes intro {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+}
+
+/* Phones: skip layout/paint of below-the-fold sections until they're near.
+   Not on desktop, where the pinned Process timeline needs exact heights. */
+@media (max-width: 767px) {
+  main > section:not(:first-of-type),
+  main > nav,
+  body > footer {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 900px;
   }
 }
 

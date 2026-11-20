@@ -18,11 +18,12 @@ import { site } from '../../data/site.mjs';
       <h1 id="archive-title" class="text-display font-medium md:col-span-8" data-split>
         <span class="line" style="--l:0"><span class="line-inner">All <span class="serif text-muted">work.</span></span></span>
       </h1>
-      <p class="max-w-[40ch] text-muted md:col-span-4 md:self-end" data-reveal style="--i:1">
+      <p class="max-w-[40ch] text-muted md:col-span-4 md:self-end" data-intro style="--i:1">
         Every project in one bin. Filter by format, hover to preview, click to watch — or open the case study.
       </p>
     </div>
-    <WorkGrid works={works} />
+    <h2 class="sr-only">Projects</h2>
+    <WorkGrid works={works} eagerFirst />
   </section>
 
   <Lightbox />

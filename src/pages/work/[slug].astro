@@ -64,7 +64,7 @@ const posterPreload = m ? [{ href: m.poster.avif }] : [];
     <div class:list={['grid gap-10 md:gap-12', vertical && 'lg:grid-cols-12 lg:grid-rows-[auto_1fr] lg:gap-x-16']}>
       <!-- Head -->
       <div class:list={[vertical && 'lg:col-span-7 lg:col-start-6 lg:row-start-1']}>
-        <p class="track mb-6" data-reveal>
+        <p class="track mb-6" data-intro>
           <span class="track-id">V1</span>Case study
         </p>
         <h1 class="text-h2 font-medium md:text-display" data-split>
@@ -72,7 +72,7 @@ const posterPreload = m ? [{ href: m.poster.avif }] : [];
         </h1>
         {
           facts.length > 0 && (
-            <dl class="mt-10 grid grid-cols-2 border-t border-line sm:grid-cols-3 lg:grid-cols-5" data-reveal style="--i:1">
+            <dl class="mt-10 grid grid-cols-2 border-t border-line sm:grid-cols-3 lg:grid-cols-5" data-intro style="--i:1">
               {facts.map((f) => (
                 <div class="border-b border-line py-4 pr-4">
                   <dt class="font-mono text-label text-muted uppercase">{f.k}</dt>
@@ -100,7 +100,7 @@ const posterPreload = m ? [{ href: m.poster.avif }] : [];
               class="w-full rounded-lg bg-black"
               style={`aspect-ratio:${vertical ? '9/16' : '16/9'}`}
               src={w.full.src}
-              poster={m?.poster.webp}
+              poster={m?.poster.avif}
               controls
               playsinline
               preload="none"
@@ -110,7 +110,7 @@ const posterPreload = m ? [{ href: m.poster.avif }] : [];
               <video
                 class="w-full rounded-lg bg-black"
                 style={`aspect-ratio:${vertical ? '9/16' : '16/9'}`}
-                poster={m.poster.webp}
+                poster={m.poster.avif}
                 muted
                 loop
                 playsinline
@@ -228,8 +228,25 @@ const posterPreload = m ? [{ href: m.poster.avif }] : [];
 <script>
   // Preview-loop fallback: autoplay muted only when motion is allowed.
   const v = document.querySelector<HTMLVideoElement>('[data-case-preview]');
+  // Same deferral as the hero reel: the poster is the LCP; decoding starts after
+  // load+idle (desktop) or first touch/scroll or 3.5s (touch devices).
   if (v && !matchMedia('(prefers-reduced-motion: reduce)').matches && !(navigator as any).connection?.saveData) {
-    v.preload = 'auto';
-    v.play().catch(() => {});
+    let started = false;
+    const start = () => {
+      if (started) return;
+      started = true;
+      v.preload = 'auto';
+      v.play().catch(() => {});
+    };
+    const idle = (cb: () => void) =>
+      'requestIdleCallback' in window ? requestIdleCallback(cb, { timeout: 1500 }) : setTimeout(cb, 300);
+    const schedule = () => {
+      if (!matchMedia('(pointer: coarse)').matches) return idle(start);
+      addEventListener('touchstart', start, { once: true, passive: true });
+      addEventListener('scroll', start, { once: true, passive: true });
+      setTimeout(() => idle(start), 3500);
+    };
+    if (document.readyState === 'complete') schedule();
+    else addEventListener('load', schedule, { once: true });
   }
 </script>

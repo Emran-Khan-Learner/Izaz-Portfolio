@@ -83,5 +83,7 @@
   };
   addEventListener('scroll', onScroll, { passive: true });
   addEventListener('resize', onScroll, { passive: true });
-  update();
+  // First layout read after load, so it never forces a reflow during startup.
+  if (document.readyState === 'complete') requestAnimationFrame(update);
+  else addEventListener('load', () => requestAnimationFrame(update), { once: true });
 </script>

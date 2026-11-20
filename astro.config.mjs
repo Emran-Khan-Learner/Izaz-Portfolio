@@ -10,7 +10,7 @@ export default defineConfig({
   devToolbar: { enabled: false },
   trailingSlash: 'never',
   build: { inlineStylesheets: 'always', format: 'file' },
-  prefetch: { prefetchAll: false, defaultStrategy: 'hover' },
+  prefetch: false, // tiny static site: the prefetch script cost more main-thread time than it saved
   integrations: [sitemap({ filter: (page) => !page.includes('/404') })],
   vite: { plugins: [tailwindcss()] },
 });

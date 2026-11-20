@@ -164,6 +164,27 @@ async function buildWork(w, prev) {
   };
 }
 
+// ── small card posters (srcset) ──────────────────────────────
+/** Half-width poster variants for grid cards: 360w (9:16) / 640w (16:9). */
+async function ensureSmallPoster(slug, entry) {
+  if (!entry) return entry;
+  const dir = join(OUT, slug);
+  const src = join(dir, 'poster.webp');
+  if (!existsSync(src)) return entry;
+  const w = entry.aspect === '9:16' ? 360 : 640;
+  const outs = [join(dir, 'poster-sm.avif'), join(dir, 'poster-sm.webp')];
+  const stale = FORCE || !outs.every(existsSync) || (await stat(outs[0])).mtimeMs < (await stat(src)).mtimeMs;
+  if (stale) {
+    const img = sharp(src).resize({ width: w });
+    await img.clone().avif({ quality: 50, effort: 6 }).toFile(outs[0]);
+    await img.clone().webp({ quality: 72 }).toFile(outs[1]);
+  }
+  return {
+    ...entry,
+    posterSm: { avif: `/media/${slug}/poster-sm.avif`, webp: `/media/${slug}/poster-sm.webp`, width: w },
+  };
+}
+
 // ── showreel ─────────────────────────────────────────────────
 async function buildReel(works) {
   const dir = join(OUT, 'reel');
@@ -238,6 +259,9 @@ if (!REEL_ONLY) {
     if (ONLY && w.slug !== ONLY) continue;
     if (!w.source) continue;
     manifest.works[w.slug] = await buildWork(w, manifest.works[w.slug]);
+  }
+  for (const w of works) {
+    if (manifest.works[w.slug]) manifest.works[w.slug] = await ensureSmallPoster(w.slug, manifest.works[w.slug]);
   }
 }
 if (!ONLY) {
