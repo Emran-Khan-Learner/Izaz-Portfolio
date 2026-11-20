@@ -1,0 +1,235 @@
+---
+/**
+ * Case study template — one page per entry in src/data/works.json.
+ * Player: YouTube facade (no YouTube requests until play) → direct URL
+ * <video> → otherwise the preview loop. Goal / What I did / Results render
+ * only when filled; in dev, empty blocks show as marked placeholders.
+ */
+import Base from '../../layouts/Base.astro';
+import SectionHead from '../../components/SectionHead.astro';
+import LiteYouTube from '../../components/LiteYouTube.astro';
+import Placeholder from '../../components/Placeholder.astro';
+import { works, type Work } from '../../lib/works';
+import { site } from '../../data/site.mjs';
+import { filled } from '../../lib/placeholder';
+
+export function getStaticPaths() {
+  return works.map((w, i) => ({
+    params: { slug: w.slug },
+    props: { work: w, next: works[(i + 1) % works.length], prev: works[(i - 1 + works.length) % works.length] },
+  }));
+}
+
+interface Props {
+  work: Work;
+  next: Work;
+  prev: Work;
+}
+const { work: w, next, prev } = Astro.props;
+const m = w.media;
+const vertical = w.aspect === '9:16';
+const cs = w.caseStudy;
+const hasGoal = filled(cs.goal);
+const hasDid = cs.did.filter(filled).length > 0;
+const hasResults = cs.results.filter(filled).length > 0;
+
+const facts = [
+  { k: 'Client', v: w.client },
+  { k: 'Format', v: w.categoryLabel },
+  { k: 'Runtime', v: m?.durationLabel ?? '' },
+  { k: 'Year', v: w.year },
+  { k: 'Reach', v: w.views },
+].filter((f) => filled(f.v));
+
+const description = filled(cs.goal)
+  ? cs.goal
+  : `${w.title} — ${w.categoryLabel.toLowerCase()} edit by ${site.name}${w.client ? ` for ${w.client}` : ''}.`;
+const posterPreload = m ? [{ href: m.poster.avif }] : [];
+---
+
+<Base title={w.title} description={description} preload={posterPreload}>
+  <article class="container-x pt-28 pb-24 md:pt-36 md:pb-32">
+    <nav aria-label="Breadcrumb" class="mb-10 md:mb-14">
+      <ol class="flex items-center gap-2 font-mono text-label text-muted uppercase">
+        <li><a href="/work" class="link-u hover:text-fg">Work</a></li>
+        <li aria-hidden="true">/</li>
+        <li aria-current="page" class="text-fg">{w.title}</li>
+      </ol>
+    </nav>
+
+    <!--
+      DOM order: head → player → story (title is always above the fold).
+      9:16 on desktop: player sits in a sticky left column spanning both rows.
+    -->
+    <div class:list={['grid gap-10 md:gap-12', vertical && 'lg:grid-cols-12 lg:grid-rows-[auto_1fr] lg:gap-x-16']}>
+      <!-- Head -->
+      <div class:list={[vertical && 'lg:col-span-7 lg:col-start-6 lg:row-start-1']}>
+        <p class="track mb-6" data-reveal>
+          <span class="track-id">V1</span>Case study
+        </p>
+        <h1 class="text-h2 font-medium md:text-display" data-split>
+          <span class="line" style="--l:0"><span class="line-inner">{w.title}</span></span>
+        </h1>
+        {
+          facts.length > 0 && (
+            <dl class="mt-10 grid grid-cols-2 border-t border-line sm:grid-cols-3 lg:grid-cols-5" data-reveal style="--i:1">
+              {facts.map((f) => (
+                <div class="border-b border-line py-4 pr-4">
+                  <dt class="font-mono text-label text-muted uppercase">{f.k}</dt>
+                  <dd class="mt-2 text-[15px]">{f.v}</dd>
+                </div>
+              ))}
+            </dl>
+          )
+        }
+      </div>
+
+      <!-- Player -->
+      <div
+        class:list={[
+          vertical &&
+            'mx-auto w-full max-w-sm lg:sticky lg:top-28 lg:col-span-5 lg:col-start-1 lg:row-span-2 lg:row-start-1 lg:max-w-none lg:self-start',
+        ]}
+        data-reveal
+      >
+        {
+          w.full?.kind === 'youtube' ? (
+            <LiteYouTube id={w.full.id} title={w.title} aspect={w.aspect} poster={m ? { ...m.poster, width: m.width, height: m.height } : null} />
+          ) : w.full?.kind === 'url' ? (
+            <video
+              class="w-full rounded-lg bg-black"
+              style={`aspect-ratio:${vertical ? '9/16' : '16/9'}`}
+              src={w.full.src}
+              poster={m?.poster.webp}
+              controls
+              playsinline
+              preload="none"
+            />
+          ) : m ? (
+            <div class="relative">
+              <video
+                class="w-full rounded-lg bg-black"
+                style={`aspect-ratio:${vertical ? '9/16' : '16/9'}`}
+                poster={m.poster.webp}
+                muted
+                loop
+                playsinline
+                controls
+                preload="none"
+                data-case-preview
+              >
+                <source src={m.preview.webm} type="video/webm" />
+                <source src={m.preview.mp4} type="video/mp4" />
+              </video>
+              <Placeholder note="no full video linked — preview loop shown" class="mt-6">
+                <p class="p-3 font-mono text-[11px] text-muted">Add a YouTube link or direct URL to this entry's "video" in works.json.</p>
+              </Placeholder>
+            </div>
+          ) : null
+        }
+      </div>
+
+      <!-- Story -->
+      <div class:list={[vertical && 'lg:col-span-7 lg:col-start-6 lg:row-start-2']}>
+        <div>
+          <div class="flex flex-col gap-12">
+            {
+              hasGoal ? (
+                <section data-reveal>
+                  <h2 class="track mb-4"><span class="track-id">01</span>Goal</h2>
+                  <p class="max-w-[60ch] text-lg leading-relaxed text-fg/90">{cs.goal}</p>
+                </section>
+              ) : (
+                <Placeholder note="caseStudy.goal">
+                  <section class="p-4">
+                    <h2 class="track mb-3"><span class="track-id">01</span>Goal</h2>
+                    <p class="text-muted">What the client needed and why — one or two sentences.</p>
+                  </section>
+                </Placeholder>
+              )
+            }
+            {
+              hasDid ? (
+                <section data-reveal>
+                  <h2 class="track mb-4"><span class="track-id">02</span>What I did</h2>
+                  <ul class="flex max-w-[60ch] flex-col border-t border-line">
+                    {cs.did.filter(filled).map((d) => (
+                      <li class="flex gap-3 border-b border-line py-3 text-fg/90">
+                        <span class="mt-2.5 size-1 shrink-0 rounded-full bg-ember" aria-hidden="true" />
+                        {d}
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              ) : (
+                <Placeholder note="caseStudy.did">
+                  <section class="p-4">
+                    <h2 class="track mb-3"><span class="track-id">02</span>What I did</h2>
+                    <p class="text-muted">A short list: pacing, captions, sound design, motion, colour…</p>
+                  </section>
+                </Placeholder>
+              )
+            }
+            {
+              hasResults ? (
+                <section data-reveal>
+                  <h2 class="track mb-4"><span class="track-id">03</span>Results</h2>
+                  <ul class="grid max-w-[60ch] gap-4 sm:grid-cols-2">
+                    {cs.results.filter(filled).map((r) => (
+                      <li class="rounded-lg border border-line bg-surface p-5 text-fg/90">{r}</li>
+                    ))}
+                  </ul>
+                </section>
+              ) : (
+                <Placeholder note="caseStudy.results">
+                  <section class="p-4">
+                    <h2 class="track mb-3"><span class="track-id">03</span>Results</h2>
+                    <p class="text-muted">Real numbers only: views, retention, watch time, conversions.</p>
+                  </section>
+                </Placeholder>
+              )
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  </article>
+
+  <!-- Prev / next -->
+  <nav aria-label="More projects" class="border-t border-line">
+    <div class="container-x grid md:grid-cols-2">
+      <a href={`/work/${prev.slug}`} class="group flex flex-col gap-3 border-b border-line py-10 md:border-r md:border-b-0 md:pr-8" data-cursor="view">
+        <span class="font-mono text-label text-muted uppercase">← Previous clip</span>
+        <span class="text-h3 font-medium transition-colors group-hover:text-ember">{prev.title}</span>
+      </a>
+      <a href={`/work/${next.slug}`} class="group flex flex-col items-end gap-3 py-10 text-right md:pl-8" data-cursor="view">
+        <span class="font-mono text-label text-muted uppercase">Next clip →</span>
+        <span class="text-h3 font-medium transition-colors group-hover:text-ember">{next.title}</span>
+      </a>
+    </div>
+  </nav>
+
+  <!-- CTA -->
+  <section class="border-t border-line py-24 md:py-32">
+    <div class="container-x flex flex-col items-start gap-10 md:flex-row md:items-end md:justify-between">
+      <div>
+        <SectionHead track="OUT" label="Next project" />
+        <p class="mt-10 max-w-[16ch] text-h2 font-medium" data-reveal>
+          Want an edit like <span class="serif text-ember">this</span>?
+        </p>
+      </div>
+      <a href={filled(site.calendly) ? site.calendly : '/#contact'} class="btn btn-primary" data-magnetic {...filled(site.calendly) && { target: '_blank', rel: 'noopener' }}>
+        Book a Call
+      </a>
+    </div>
+  </section>
+</Base>
+
+<script>
+  // Preview-loop fallback: autoplay muted only when motion is allowed.
+  const v = document.querySelector<HTMLVideoElement>('[data-case-preview]');
+  if (v && !matchMedia('(prefers-reduced-motion: reduce)').matches && !(navigator as any).connection?.saveData) {
+    v.preload = 'auto';
+    v.play().catch(() => {});
+  }
+</script>

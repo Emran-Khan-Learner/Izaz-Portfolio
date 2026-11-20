@@ -17,7 +17,6 @@ const { work: w, index = 0, class: cls = '', eager = false } = Astro.props;
 const m = w.media;
 const vertical = w.aspect === '9:16';
 const full = w.full;
-const meta = [w.client, w.views].filter(Boolean);
 ---
 
 <article
@@ -112,12 +111,19 @@ const meta = [w.client, w.views].filter(Boolean);
   </button>
 
   <div class="mt-3 flex items-start justify-between gap-3">
-    <h3 class="text-[15px] leading-snug font-medium tracking-[-0.01em]">{w.title}</h3>
+    <h3 class="text-[15px] leading-snug font-medium tracking-[-0.01em]">
+      <a href={`/work/${w.slug}`} class="link-u">{w.title}</a>
+    </h3>
     {
       w.views && (
         <span class="shrink-0 font-mono text-[11px] text-ember tabular-nums">{w.views}</span>
       )
     }
   </div>
-  {meta.length > 0 && w.client && <p class="mt-1 text-sm text-muted">{w.client}</p>}
+  <p class="mt-1 flex items-center justify-between gap-3 text-sm text-muted">
+    <span>{w.client}</span>
+    <a href={`/work/${w.slug}`} class="font-mono text-[11px] tracking-widest whitespace-nowrap uppercase transition-colors hover:text-fg" tabindex="-1" aria-hidden="true">
+      Case study →
+    </a>
+  </p>
 </article>

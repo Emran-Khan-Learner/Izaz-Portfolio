@@ -1,0 +1,63 @@
+---
+/**
+ * YouTube facade: renders our own poster + play button. The privacy-enhanced
+ * YouTube iframe is injected only when the visitor clicks, so the page makes
+ * zero requests to YouTube until then. Without JS it's a plain link to YouTube.
+ */
+interface Props {
+  id: string;
+  title: string;
+  aspect?: '16:9' | '9:16';
+  poster?: { avif: string; webp: string; width: number; height: number } | null;
+}
+const { id, title, aspect = '16:9', poster } = Astro.props;
+const thumb = `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
+---
+
+<div
+  class="lite-yt relative overflow-hidden rounded-lg bg-black"
+  style={`aspect-ratio:${aspect === '9:16' ? '9/16' : '16/9'}`}
+  data-lite-yt={id}
+  data-title={title}
+>
+  <a
+    href={`https://www.youtube.com/watch?v=${id}`}
+    class="group absolute inset-0 block"
+    aria-label={`Play video: ${title}`}
+    data-cursor="play"
+  >
+    {
+      poster ? (
+        <picture>
+          <source type="image/avif" srcset={poster.avif} />
+          <img src={poster.webp} width={poster.width} height={poster.height} alt="" decoding="async" class="size-full object-cover" />
+        </picture>
+      ) : (
+        <img src={thumb} alt="" width="480" height="360" loading="lazy" decoding="async" class="size-full object-cover" />
+      )
+    }
+    <span class="absolute inset-0 bg-ink/25 transition-colors group-hover:bg-ink/10" aria-hidden="true"></span>
+    <span
+      class="absolute inset-0 m-auto grid size-20 place-items-center rounded-full bg-fg text-ink shadow-2xl transition-transform duration-500 ease-out-expo group-hover:scale-110"
+      aria-hidden="true"
+    >
+      <svg viewBox="0 0 24 24" class="ml-1 size-7" fill="currentColor"><path d="M8 5.5v13l11-6.5z"></path></svg>
+    </span>
+  </a>
+</div>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-lite-yt]').forEach((box) => {
+    box.querySelector('a')?.addEventListener('click', (e) => {
+      e.preventDefault();
+      const f = document.createElement('iframe');
+      f.src = `https://www.youtube-nocookie.com/embed/${encodeURIComponent(box.dataset.liteYt!)}?autoplay=1&playsinline=1&rel=0&modestbranding=1`;
+      f.title = box.dataset.title ?? 'Video';
+      f.allow = 'autoplay; encrypted-media; picture-in-picture; fullscreen';
+      f.allowFullscreen = true;
+      f.className = 'absolute inset-0 size-full border-0';
+      box.replaceChildren(f);
+      f.focus();
+    });
+  });
+</script>
