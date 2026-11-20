@@ -6,6 +6,7 @@ import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import EditorChrome from '../components/EditorChrome.astro';
 import Reveal from '../components/Reveal.astro';
+import Interactions from '../components/Interactions.astro';
 
 interface Props {
   title?: string;
@@ -141,5 +142,9 @@ const jsonLd = {
     <Footer />
     <div class="grain" aria-hidden="true"></div>
     <Reveal />
+    <Interactions />
+    <script>
+      import '../scripts/motion';
+    </script>
   </body>
 </html>

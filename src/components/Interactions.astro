@@ -1,0 +1,171 @@
+---
+/**
+ * Desktop micro-interactions (fine pointer + hover only; never on touch):
+ *  - Custom cursor: small dot; grows with "PLAY" over [data-cursor=play],
+ *    "VIEW" over links / [data-cursor=view], and a ring over buttons.
+ *    Native cursor returns over form fields, the compare slider and the
+ *    lightbox (iframes can't report pointer position).
+ *  - Magnetic: [data-magnetic] elements lean toward the pointer.
+ *  - Tilt: [data-tilt] cards rotate a few degrees with the pointer.
+ * Under reduced motion the cursor still works but follows 1:1 (no easing),
+ * and magnetic/tilt are off.
+ */
+---
+
+<div class="cursor" aria-hidden="true" data-cursor-el>
+  <span class="cursor-label" data-cursor-label></span>
+</div>
+
+<style is:global>
+  .cursor {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 85;
+    display: none;
+    pointer-events: none;
+    width: 10px;
+    height: 10px;
+    margin: -5px 0 0 -5px;
+    border-radius: 999px;
+    background: var(--color-fg);
+    mix-blend-mode: difference;
+    transition:
+      width 0.35s var(--ease-out-expo),
+      height 0.35s var(--ease-out-expo),
+      margin 0.35s var(--ease-out-expo),
+      background-color 0.25s,
+      opacity 0.25s;
+    will-change: transform;
+  }
+  html.has-cursor .cursor {
+    display: grid;
+    place-items: center;
+  }
+  .cursor-label {
+    font: 600 10px/1 var(--font-mono);
+    letter-spacing: 0.12em;
+    color: var(--color-ink);
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .cursor.is-label {
+    width: 72px;
+    height: 72px;
+    margin: -36px 0 0 -36px;
+    mix-blend-mode: normal;
+    background: var(--color-fg);
+  }
+  .cursor.is-play {
+    background: var(--color-ember);
+  }
+  .cursor.is-label .cursor-label {
+    opacity: 1;
+  }
+  .cursor.is-ring {
+    width: 40px;
+    height: 40px;
+    margin: -20px 0 0 -20px;
+    background: transparent;
+    border: 1px solid var(--color-fg);
+    mix-blend-mode: normal;
+  }
+  .cursor.is-hidden {
+    opacity: 0;
+  }
+  /* Hide the native cursor only where the custom one is in charge */
+  html.has-cursor body,
+  html.has-cursor a,
+  html.has-cursor button,
+  html.has-cursor summary,
+  html.has-cursor [data-cursor] {
+    cursor: none;
+  }
+  html.has-cursor:has(dialog[open]) body,
+  html.has-cursor:has(dialog[open]) a,
+  html.has-cursor:has(dialog[open]) button {
+    cursor: auto;
+  }
+</style>
+
+<script>
+  const fine = matchMedia('(hover: hover) and (pointer: fine)');
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  if (fine.matches) {
+    const root = document.documentElement;
+    const el = document.querySelector<HTMLElement>('[data-cursor-el]')!;
+    const label = document.querySelector<HTMLElement>('[data-cursor-label]')!;
+    root.classList.add('has-cursor');
+
+    // ── Cursor follow ───────────────────────────────────────
+    let x = innerWidth / 2, y = innerHeight / 2, cx = x, cy = y, raf = 0, seen = false;
+    const loop = () => {
+      const k = reduce ? 1 : 0.22;
+      cx += (x - cx) * k;
+      cy += (y - cy) * k;
+      el.style.transform = `translate3d(${cx}px, ${cy}px, 0)`;
+      raf = Math.abs(x - cx) + Math.abs(y - cy) > 0.1 ? requestAnimationFrame(loop) : 0;
+    };
+    addEventListener('pointermove', (e) => {
+      if (e.pointerType !== 'mouse') return;
+      x = e.clientX;
+      y = e.clientY;
+      if (!seen) {
+        seen = true;
+        cx = x;
+        cy = y;
+      }
+      if (!raf) raf = requestAnimationFrame(loop);
+    }, { passive: true });
+    document.addEventListener('pointerleave', () => el.classList.add('is-hidden'));
+    document.addEventListener('pointerenter', () => el.classList.remove('is-hidden'));
+
+    // ── States by what's under the pointer ──────────────────
+    const NATIVE = 'input, textarea, select, iframe, [contenteditable], .compare-range';
+    const setState = (target: Element | null) => {
+      el.classList.remove('is-label', 'is-play', 'is-ring', 'is-hidden');
+      label.textContent = '';
+      if (!target || document.querySelector('dialog[open]')) {
+        if (document.querySelector('dialog[open]')) el.classList.add('is-hidden');
+        return;
+      }
+      if (target.closest(NATIVE)) return el.classList.add('is-hidden');
+      const c = target.closest<HTMLElement>('[data-cursor], a, button, summary, [role=button]');
+      if (!c) return;
+      const kind = c.dataset.cursor ?? (c.matches('a') ? 'view' : 'ring');
+      if (kind === 'play') {
+        el.classList.add('is-label', 'is-play');
+        label.textContent = 'PLAY';
+      } else if (kind === 'view') {
+        el.classList.add('is-label');
+        label.textContent = 'VIEW';
+      } else el.classList.add('is-ring');
+    };
+    document.addEventListener('pointerover', (e) => setState(e.target as Element));
+
+    // ── Magnetic & tilt (motion only) ───────────────────────
+    if (!reduce) {
+      document.querySelectorAll<HTMLElement>('[data-magnetic]').forEach((m) => {
+        m.addEventListener('pointermove', (e) => {
+          const r = m.getBoundingClientRect();
+          const dx = e.clientX - (r.left + r.width / 2);
+          const dy = e.clientY - (r.top + r.height / 2);
+          m.style.transform = `translate(${dx * 0.22}px, ${dy * 0.3}px)`;
+        });
+        m.addEventListener('pointerleave', () => (m.style.transform = ''));
+      });
+
+      document.querySelectorAll<HTMLElement>('[data-tilt]').forEach((t) => {
+        t.style.transformStyle = 'preserve-3d';
+        t.addEventListener('pointermove', (e) => {
+          const r = t.getBoundingClientRect();
+          const px = (e.clientX - r.left) / r.width - 0.5;
+          const py = (e.clientY - r.top) / r.height - 0.5;
+          t.style.transform = `perspective(900px) rotateX(${(-py * 5).toFixed(2)}deg) rotateY(${(px * 5).toFixed(2)}deg)`;
+        });
+        t.addEventListener('pointerleave', () => (t.style.transform = ''));
+      });
+    }
+  }
+</script>

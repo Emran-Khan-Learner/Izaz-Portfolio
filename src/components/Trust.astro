@@ -70,3 +70,28 @@ const loop = [...seq, ...seq];
     .marquee { animation: none; }
   }
 </style>
+
+<script>
+  // Count-up: the real value is server-rendered; this only animates 0 → value.
+  const els = [...document.querySelectorAll<HTMLElement>('[data-count]')];
+  if (els.length && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    const run = (el: HTMLElement) => {
+      const target = parseFloat(el.dataset.count!);
+      const decimals = (el.dataset.count!.split('.')[1] ?? '').length;
+      const t0 = performance.now();
+      const D = 1400;
+      const tick = (now: number) => {
+        const p = Math.min(1, (now - t0) / D);
+        const eased = 1 - Math.pow(1 - p, 4);
+        el.textContent = (target * eased).toFixed(decimals);
+        if (p < 1) requestAnimationFrame(tick);
+      };
+      requestAnimationFrame(tick);
+    };
+    const io = new IntersectionObserver(
+      (entries) => entries.forEach((e) => e.isIntersecting && (io.unobserve(e.target), run(e.target as HTMLElement))),
+      { threshold: 0.6 },
+    );
+    els.forEach((el) => io.observe(el));
+  }
+</script>

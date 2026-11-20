@@ -26,6 +26,14 @@
     if (!el || seen || matchMedia('(prefers-reduced-motion: reduce)').matches) return el && el.remove();
 
     el.classList.add('is-on');
+    var root = document.documentElement;
+    root.classList.add('preloading');
+    var done = function () {
+      root.classList.remove('preloading');
+      window.__preloaderDone = true;
+      dispatchEvent(new Event('preloader:done'));
+    };
+    setTimeout(done, 2000); // hard cap: never hold the page longer than this
     var tc = el.querySelector('[data-preloader-tc]');
     var bar = el.querySelector('[data-preloader-bar]');
     var FPS = 24, DUR = 800, t0 = performance.now();
@@ -37,6 +45,7 @@
       if (p < 1) requestAnimationFrame(tick);
       else {
         el.classList.add('is-done');
+        if (!window.__preloaderDone) done(); // hero animates in under the wipe
         setTimeout(function () { el.remove(); }, 650);
       }
     }

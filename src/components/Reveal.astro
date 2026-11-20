@@ -1,20 +1,29 @@
 <script>
-  // Lightweight reveal: adds .is-in when [data-reveal] enters the viewport.
-  // Runs only when <html> has .motion (i.e. reduced motion is off).
+  /**
+   * Scroll reveals: adds .is-in when a [data-reveal] element enters the
+   * viewport (CSS handles the fade/slide + stagger via --i). Vanilla IO —
+   * no animation library on the critical path.
+   * Runs only when <html> has .motion (reduced motion off). If the first-visit
+   * preloader is running, waits for it so the hero reveals under the wipe.
+   */
   const root = document.documentElement;
   if (root.classList.contains('motion')) {
     (window as any).__motionReady = true;
-    const io = new IntersectionObserver(
-      (entries) => {
-        for (const e of entries) {
-          if (e.isIntersecting) {
-            e.target.classList.add('is-in');
-            io.unobserve(e.target);
+    const start = () => {
+      const io = new IntersectionObserver(
+        (entries) => {
+          for (const e of entries) {
+            if (e.isIntersecting) {
+              e.target.classList.add('is-in');
+              io.unobserve(e.target);
+            }
           }
-        }
-      },
-      { rootMargin: '0px 0px -8% 0px' },
-    );
-    document.querySelectorAll('[data-reveal]').forEach((el) => io.observe(el));
+        },
+        { rootMargin: '0px 0px -8% 0px' },
+      );
+      document.querySelectorAll('[data-reveal]').forEach((el) => io.observe(el));
+    };
+    if (root.classList.contains('preloading')) addEventListener('preloader:done', start, { once: true });
+    else start();
   }
 </script>

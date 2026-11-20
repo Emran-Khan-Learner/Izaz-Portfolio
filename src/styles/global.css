@@ -271,6 +271,43 @@ html.motion [data-reveal].is-in {
   transition-delay: calc(var(--i, 0) * 70ms);
 }
 
+/* ── Headline line reveal (CSS-only, no JS needed) ──────────
+   Each line slides up out of a mask. Waits while the first-visit
+   preloader runs (html.preloading). Text is never hidden when
+   .motion is absent (reduced motion, or the safety timeout). */
+[data-split] .line {
+  display: block;
+  overflow: clip;
+  /* room for descenders / italic overhang inside the mask */
+  padding-bottom: 0.08em;
+  margin-bottom: -0.08em;
+  overflow-clip-margin: 0.12em;
+}
+[data-split] .line-inner {
+  display: block;
+}
+html.motion [data-split] .line-inner {
+  transform: translateY(110%);
+}
+html.motion:not(.preloading) [data-split] .line-inner {
+  animation: line-up 0.9s var(--ease-out-expo) forwards;
+  animation-delay: calc(var(--l, 0) * 90ms + 80ms);
+}
+@keyframes line-up {
+  to {
+    transform: none;
+  }
+}
+
+/* Magnetic buttons & tilt cards ease back when released */
+[data-magnetic] {
+  transition:
+    transform 0.5s var(--ease-out-expo),
+    background-color 0.3s var(--ease-out-quart),
+    color 0.3s var(--ease-out-quart),
+    border-color 0.3s var(--ease-out-quart);
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
